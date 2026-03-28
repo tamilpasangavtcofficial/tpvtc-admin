@@ -7,16 +7,26 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentRequests, setRecentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mediaStats, setMediaStats] = useState({ gallery: 0, headers: 0 });
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = (user.UserRole?.role || user.role || 'Staff').toLowerCase();
+  
+  const canViewSlots = ['developer', 'founder', 'event team'].includes(role);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
+        
+        // Parallel fetch for basic stats
         const [profileRes, eventsRes, attendingRes, requestsRes] = await Promise.all([
           fetch(`${config.API_BASE_URL}/api/tmp/vtc/profile`),
           fetch(`${config.API_BASE_URL}/api/tmp/vtc/events`),
           fetch(`${config.API_BASE_URL}/api/tmp/vtc/events/attending`),
-          fetch(`${config.API_BASE_URL}/api/slots/requests/pending`)
+          fetch(`${config.API_BASE_URL}/api/slots/requests/pending`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
         ]);
         
         const p = await profileRes.json().catch(() => ({}));
@@ -45,13 +55,28 @@ const Dashboard = () => {
         if (Array.isArray(r)) {
           setRecentRequests(r.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5));
         }
+
+        // Fetch media stats if user is Media Team or Staff (or just fetch anyway for simplicity)
+        const [galleryRes, headersRes] = await Promise.all([
+          fetch(`${config.API_BASE_URL}/api/images/gallery`),
+          fetch(`${config.API_BASE_URL}/api/images/headers`)
+        ]);
+
+        const galleyData = await galleryRes.json().catch(() => []);
+        const headersData = await headersRes.json().catch(() => []);
+
+        setMediaStats({
+          gallery: galleyData.length || 0,
+          headers: headersData.length || 0
+        });
+
       } catch (e) {
         console.error("Dashboard Stats Error:", e);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
   const StatItem = ({ title, value, icon: Icon, color, rgb }) => {
@@ -120,49 +145,97 @@ const Dashboard = () => {
 
       <div className="row g-4">
         <div className="col-lg-8">
-           <div className="data-table p-5 border-0 shadow-lg">
-              <div className="d-flex justify-content-between align-items-center mb-5">
-                 <h4 className="fw-bold mb-0">Live Slot Activity</h4>
-                 <Link to="/requests" className="btn btn-outline-secondary btn-sm border-opacity-10 rounded-pill px-3">View All</Link>
-              </div>
-              <div className="table-responsive">
-                <table className="table table-dark table-hover mb-0 align-middle">
-                  <thead className="small">
-                    <tr>
-                      <th className="border-0 text-muted-custom tracking-wider">VTC PARTICIPANT</th>
-                      <th className="border-0 text-muted-custom tracking-wider">REQUESTED SLOT</th>
-                      <th className="border-0 text-muted-custom tracking-wider">DATE</th>
-                      <th className="border-0 text-end text-muted-custom tracking-wider">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentRequests.length === 0 ? (
-                      <tr className="border-0">
-                         <td colSpan="4" className="py-5 text-center">
-                            <div className="p-5 rounded-4 border border-white border-opacity-10" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                              <Ticket size={40} className="text-muted mb-3 opacity-50" />
-                              <div className="text-muted-custom">No active slot requests found in queue.</div>
-                            </div>
-                         </td>
-                      </tr>
-                    ) : (
-                      recentRequests.map(req => (
-                        <tr key={req.id} className="border-bottom border-white border-opacity-10">
-                           <td className="fw-bold text-white py-3">{req.vtc_name}</td>
-                           <td className="text-accent fw-600">{req.EventSlot?.EventSlotImage?.slot_name || `Slot #${req.event_slot_id}`}</td>
-                           <td className="small text-muted-custom">{new Date(req.createdAt).toLocaleDateString()}</td>
-                           <td className="text-end">
-                             <div className="d-inline-flex px-3 py-1 rounded-pill small fw-bold" style={{ background: 'rgba(255, 193, 7, 0.1)', color: '#ffc107', fontSize: '0.7rem' }}>
-                                <div className="rounded-circle me-2 mt-1" style={{ width: 6, height: 6, background: '#ffc107' }}></div> {req.status.toUpperCase()}
-                             </div>
-                           </td>
+            {canViewSlots ? (
+               <div className="data-table p-5 border-0 shadow-lg">
+                  <div className="d-flex justify-content-between align-items-center mb-5">
+                     <h4 className="fw-bold mb-0">Live Slot Activity</h4>
+                     <Link to="/requests" className="btn btn-outline-secondary btn-sm border-opacity-10 rounded-pill px-3">View All</Link>
+                  </div>
+                  <div className="table-responsive">
+                    <table className="table table-dark table-hover mb-0 align-middle">
+                      <thead className="small">
+                        <tr>
+                          <th className="border-0 text-muted-custom tracking-wider">VTC PARTICIPANT</th>
+                          <th className="border-0 text-muted-custom tracking-wider">REQUESTED SLOT</th>
+                          <th className="border-0 text-muted-custom tracking-wider">DATE</th>
+                          <th className="border-0 text-end text-muted-custom tracking-wider">STATUS</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-           </div>
+                      </thead>
+                      <tbody>
+                        {recentRequests.length === 0 ? (
+                          <tr className="border-0">
+                             <td colSpan="4" className="py-5 text-center">
+                                <div className="p-5 rounded-4 border border-white border-opacity-10" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                                  <Ticket size={40} className="text-muted mb-3 opacity-50" />
+                                  <div className="text-muted-custom">No active slot requests found in queue.</div>
+                                </div>
+                             </td>
+                          </tr>
+                        ) : (
+                          recentRequests.map(req => (
+                            <tr key={req.id} className="border-bottom border-white border-opacity-10">
+                               <td className="fw-bold text-white py-3">{req.vtc_name}</td>
+                               <td className="text-accent fw-600">{req.EventSlot?.EventSlotImage?.slot_name || `Slot #${req.event_slot_id}`}</td>
+                               <td className="small text-muted-custom">{new Date(req.createdAt).toLocaleDateString()}</td>
+                               <td className="text-end">
+                                 <div className="d-inline-flex px-3 py-1 rounded-pill small fw-bold" style={{ background: 'rgba(255, 193, 7, 0.1)', color: '#ffc107', fontSize: '0.7rem' }}>
+                                    <div className="rounded-circle me-2 mt-1" style={{ width: 6, height: 6, background: '#ffc107' }}></div> {req.status.toUpperCase()}
+                                 </div>
+                               </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+            ) : (
+               <div className="data-table p-5 border-0 shadow-lg">
+                  <div className="d-flex justify-content-between align-items-center mb-5">
+                     <h4 className="fw-bold mb-0">Media Intelligence</h4>
+                     <div className="badge px-3 py-2 rounded-pill bg-accent bg-opacity-10 text-accent small fw-bold">Live Asset Sync</div>
+                  </div>
+                  
+                  <div className="row g-4">
+                     <div className="col-md-6">
+                        <div className="p-4 rounded-4 border border-white border-opacity-10 h-100" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                           <div className="d-flex align-items-start justify-content-between mb-4">
+                              <div className="p-3 rounded-4 bg-accent bg-opacity-10">
+                                 <Users size={24} className="text-accent"/>
+                              </div>
+                              <Link to="/gallery" className="btn btn-link text-accent p-0 text-decoration-none small fw-bold">Manage Gallery</Link>
+                           </div>
+                           <div className="display-5 fw-bold text-white mb-1">{mediaStats.gallery}</div>
+                           <div className="text-muted-custom small text-uppercase tracking-widest fw-bold">Gallery Assets</div>
+                           <div className="mt-3 small text-muted opacity-50">Publicly visible community memories and event captures.</div>
+                        </div>
+                     </div>
+                     <div className="col-md-6">
+                        <div className="p-4 rounded-4 border border-white border-opacity-10 h-100" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                           <div className="d-flex align-items-start justify-content-between mb-4">
+                              <div className="p-3 rounded-4 bg-primary bg-opacity-10">
+                                 <Zap size={24} className="text-primary"/>
+                              </div>
+                              <Link to="/header-images" className="btn btn-link text-primary p-0 text-decoration-none small fw-bold">Manage Headers</Link>
+                           </div>
+                           <div className="display-5 fw-bold text-white mb-1">{mediaStats.headers}</div>
+                           <div className="text-muted-custom small text-uppercase tracking-widest fw-bold">Active Headers</div>
+                           <div className="mt-3 small text-muted opacity-50">Dynamic hero images used across the main portal interface.</div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="mt-5 p-4 rounded-4 bg-black bg-opacity-20 border border-white border-opacity-5">
+                     <div className="d-flex align-items-center gap-3">
+                        <div className="flex-grow-1">
+                           <h6 className="text-white fw-bold mb-1">Upload Pipeline Ready</h6>
+                           <p className="small text-muted-custom mb-0">High-fidelity media processing is operational via Cloudinary. All uploads are optimized for performance automatically.</p>
+                        </div>
+                        <ArrowUpRight size={20} className="text-muted opacity-50" />
+                     </div>
+                  </div>
+               </div>
+            )}
         </div>
         <div className="col-lg-4">
            <div className="data-table h-100 p-5 position-relative overflow-hidden">
