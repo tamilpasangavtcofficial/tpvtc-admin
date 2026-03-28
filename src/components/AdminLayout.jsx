@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Ticket, Image, UserCheck, Inbox, LogOut, Zap, Brush, ExternalLink, History, Heart } from 'lucide-react';
+import { LayoutDashboard, Ticket, Image, UserCheck, Inbox, LogOut, Zap, Brush, ExternalLink, History, Heart, Lock, ShieldCheck, X, Loader2 } from 'lucide-react';
 import logo from '../logo.png';
 import config from '../config';
 
@@ -16,6 +16,11 @@ const AdminLayout = ({ children }) => {
   const isMediaTeam = role === 'media team';
 
   const [pendingCount, setPendingCount] = useState(0);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (isHighRole || isEventTeam) {
@@ -36,6 +41,50 @@ const AdminLayout = ({ children }) => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'danger', text: 'Passwords do not match' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setMessage({ type: 'danger', text: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    setIsUpdating(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const token = sessionStorage.getItem('token');
+      const res = await fetch(`${config.API_BASE_URL}/api/auth/users/${currentUser.id}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Password updated successfully!' });
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setNewPassword('');
+          setConfirmPassword('');
+          setMessage({ type: '', text: '' });
+        }, 2000);
+      } else {
+        setMessage({ type: 'danger', text: data.message || 'Failed to update password' });
+      }
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Server error. Please try again later.' });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const navItems = [
@@ -90,6 +139,17 @@ const AdminLayout = ({ children }) => {
             <span className="small text-muted-custom fw-600 text-uppercase tracking-wider">Tamil Pasanga VTC</span>
             <h2 className="display-6 fw-bold mb-0">Operational Dashboard</h2>
           </div>
+
+          <div className="d-none d-xl-block">
+            <button 
+              onClick={() => setShowPasswordModal(true)}
+              className="btn btn-outline-light border-white border-opacity-10 px-4 py-2 rounded-pill d-flex align-items-center gap-2 transition-all"
+              style={{ background: 'rgba(255,255,255,0.03)', fontSize: '0.85rem' }}
+            >
+              <Lock size={14} className="text-accent" />
+              <span className="fw-600">Change Password</span>
+            </button>
+          </div>
           <div className="d-flex align-items-center gap-4">
             <div className="text-end d-none d-md-block border-end border-white border-opacity-10 pe-4">
               <div className="fw-bold h5 mb-0 text-white">{username}</div>
@@ -105,6 +165,67 @@ const AdminLayout = ({ children }) => {
           {children}
         </div>
       </main>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center z-index-master" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+          <div className="data-table p-5 w-100 shadow-2xl border border-white border-opacity-10" style={{ maxWidth: '450px', background: 'var(--admin-card)' }}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+               <div className="d-flex align-items-center gap-3">
+                  <div className="p-3 rounded-4 bg-accent bg-opacity-10">
+                     <ShieldCheck size={24} className="text-accent"/>
+                  </div>
+                  <h4 className="fw-bold mb-0">Security Update</h4>
+               </div>
+               <button onClick={() => setShowPasswordModal(false)} className="btn btn-link text-white p-0 opacity-50 hover-opacity-100">
+                  <X size={24} />
+               </button>
+            </div>
+
+            <p className="text-muted-custom mb-4 small">Update your administrative password. Choose a strong combination to keep your access secure.</p>
+
+            <form onSubmit={handleChangePassword}>
+               <div className="mb-3">
+                  <label className="small text-muted text-uppercase fw-600 mb-2 ms-2">New Password</label>
+                  <input 
+                    type="password" 
+                    className="form-control bg-black bg-opacity-30 border-white border-opacity-10 text-white p-3 rounded-4"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+               </div>
+               <div className="mb-4">
+                  <label className="small text-muted text-uppercase fw-600 mb-2 ms-2">Confirm Password</label>
+                  <input 
+                    type="password" 
+                    className="form-control bg-black bg-opacity-30 border-white border-opacity-10 text-white p-3 rounded-4"
+                    placeholder="Repeat new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+               </div>
+
+               {message.text && (
+                  <div className={`alert alert-${message.type} border-0 rounded-4 p-3 mb-4 small fw-600`}>
+                     {message.text}
+                  </div>
+               )}
+
+               <button 
+                 type="submit" 
+                 disabled={isUpdating}
+                 className="btn btn-admin w-100 py-3 rounded-4 d-flex align-items-center justify-content-center gap-2"
+               >
+                  {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
+                  <span>{isUpdating ? 'Updating...' : 'Securely Update Password'}</span>
+               </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
