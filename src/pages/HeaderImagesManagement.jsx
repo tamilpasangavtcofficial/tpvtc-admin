@@ -13,7 +13,7 @@ const HeaderImagesManagement = () => {
    const [statusModal, setStatusModal] = useState({ show: false, title: '', message: '', type: 'success' });
    const [confirmAction, setConfirmAction] = useState(null);
 
-   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+   const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
    const role = String(currentUser?.role || 'Guest').toLowerCase();
    const canEditMedia = role === 'founder' || role === 'developer' || role === 'media team';
 
@@ -43,7 +43,7 @@ const HeaderImagesManagement = () => {
       }
 
       setUploading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       try {
          const signRes = await fetch(`${config.API_BASE_URL}/api/images/upload-sign`, {
@@ -87,7 +87,7 @@ const HeaderImagesManagement = () => {
 
    const handleDelete = async (id) => {
       showStatus("Confirm Removal", "Are you sure you want to delete this media asset?", "confirm", async () => {
-         const token = localStorage.getItem('token');
+         const token = sessionStorage.getItem('token');
          try {
             const res = await fetch(`${config.API_BASE_URL}/api/images/headers/${id}`, {
                method: 'DELETE',

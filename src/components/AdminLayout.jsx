@@ -7,7 +7,7 @@ import config from '../config';
 const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
   const role = String(currentUser?.role || 'Guest').toLowerCase();
   const username = currentUser?.username || 'GUEST';
 
@@ -33,8 +33,8 @@ const AdminLayout = ({ children }) => {
   }, [isHighRole, isEventTeam]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     navigate('/login');
   };
 

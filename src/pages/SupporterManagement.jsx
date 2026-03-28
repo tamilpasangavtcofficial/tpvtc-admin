@@ -26,7 +26,7 @@ const SupporterManagement = () => {
 
     const fetchData = async () => {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         try {
             const [sRes, mRes] = await Promise.all([
                 fetch(`${config.API_BASE_URL}/api/supporters/admin`, {
@@ -60,7 +60,7 @@ const SupporterManagement = () => {
         if (!file) return;
 
         setUploading(true);
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
 
         try {
             const signRes = await fetch(`${config.API_BASE_URL}/api/images/upload-sign`, {
@@ -103,7 +103,7 @@ const SupporterManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         try {
             const res = await fetch(`${config.API_BASE_URL}/api/supporters`, {
                 method: 'POST',
@@ -127,7 +127,7 @@ const SupporterManagement = () => {
 
     const handleDelete = async (id) => {
         if (!window.confirm("Archive this recognition record?")) return;
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         try {
             const res = await fetch(`${config.API_BASE_URL}/api/supporters/${id}`, {
                 method: 'DELETE',

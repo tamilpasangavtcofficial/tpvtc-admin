@@ -74,7 +74,7 @@ const SlotManagement = () => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     try {
       const signRes = await fetch(`${config.API_BASE_URL}/api/images/upload-sign`, {
         method: 'POST',
@@ -175,7 +175,7 @@ const SlotManagement = () => {
         try {
           const res = await fetch(`${config.API_BASE_URL}/api/slots/clear/${slot.id}`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
           });
           if (res.ok) {
             // Refresh
@@ -195,7 +195,7 @@ const SlotManagement = () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}` 
         },
         body: JSON.stringify({ vtc_name: assignModal.vtcName })
       });
@@ -214,7 +214,7 @@ const SlotManagement = () => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     try {
       const signRes = await fetch(`${config.API_BASE_URL}/api/images/upload-sign`, {
         method: 'POST',

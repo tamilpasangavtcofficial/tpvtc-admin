@@ -26,12 +26,12 @@ const StaffManagement = () => {
     else setConfirmAction(null);
   };
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
   const role = String(currentUser?.role || 'Guest').toLowerCase();
   const isHighRole = role === 'founder' || role === 'developer';
 
   const fetchData = async () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/auth/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -45,7 +45,7 @@ const StaffManagement = () => {
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/auth/users`, {
         method: 'POST',
@@ -65,7 +65,7 @@ const StaffManagement = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/auth/users/${selectedUser.id}`, {
         method: 'PUT',
@@ -85,7 +85,7 @@ const StaffManagement = () => {
       "Are you sure you want to delete this staff member? This will immediately revoke their dashboard access and permanently remove their account.",
       "confirm",
       async () => {
-         const token = localStorage.getItem('token');
+         const token = sessionStorage.getItem('token');
          try {
            const res = await fetch(`${config.API_BASE_URL}/api/auth/users/${id}`, {
              method: 'DELETE',
@@ -100,7 +100,7 @@ const StaffManagement = () => {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/auth/users/${selectedUser.id}/password`, {
         method: 'PUT',

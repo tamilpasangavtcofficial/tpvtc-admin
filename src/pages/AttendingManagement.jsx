@@ -63,7 +63,7 @@ const AttendingManagement = () => {
       if (!file) return;
 
       setUploading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       try {
         // 1. Get Signature

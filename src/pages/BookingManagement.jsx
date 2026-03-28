@@ -46,7 +46,7 @@ const BookingManagement = () => {
 
          const res = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
          });
 
          if (res.ok) {

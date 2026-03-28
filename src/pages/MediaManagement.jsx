@@ -37,7 +37,7 @@ const GalleryManagement = () => {
       if (!file) return;
 
       setUploading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
 
       try {
          const signRes = await fetch(`${config.API_BASE_URL}/api/images/upload-sign`, {
@@ -81,7 +81,7 @@ const GalleryManagement = () => {
 
    const handleDelete = async (targetType, id) => {
       showStatus("Confirm Removal", "Are you sure you want to delete this media asset?", "confirm", async () => {
-         const token = localStorage.getItem('token');
+         const token = sessionStorage.getItem('token');
          try {
             const res = await fetch(`${config.API_BASE_URL}/api/images/${targetType}/${id}`, {
                method: 'DELETE',

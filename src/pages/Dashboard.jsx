@@ -9,7 +9,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [mediaStats, setMediaStats] = useState({ gallery: 0, headers: 0 });
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
   const role = (user.UserRole?.role || user.role || 'Staff').toLowerCase();
   
   const canViewSlots = ['developer', 'founder', 'event team'].includes(role);
@@ -17,7 +17,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         
         // Parallel fetch for basic stats
         const [profileRes, eventsRes, attendingRes, requestsRes] = await Promise.all([
