@@ -29,6 +29,7 @@ const SlotManagement = () => {
   
   // Modal States
   const [editModal, setEditModal] = useState({ show: false, slots: [], url: '', name: '', from: 1, to: 1, id: null });
+  const [nameModal, setNameModal] = useState({ show: false, id: null, name: '' });
   const [assignModal, setAssignModal] = useState({ show: false, slot: null, vtcName: '' });
   
   const [uploading, setUploading] = useState(false);
@@ -140,40 +141,40 @@ const SlotManagement = () => {
     });
   };
 
-  const handleModalSave = async () => {
-    if (!editModal.url || !editModal.from || !editModal.to) return showStatus("Setup Required", "Complete map and range fields.", "error");
+  const handleEditName = (sector) => {
+    setNameModal({
+      show: true,
+      id: sector.id,
+      name: sector.slot_name || ''
+    });
+  };
+
+  const handleSaveName = async () => {
+    if (!nameModal.name) return showStatus("Required field", "Enter a name for the sector.", "error");
     
     setSaving(true);
     try {
-      const res = await fetch(`${config.API_BASE_URL}/api/slots/official/setup`, {
-        method: 'POST',
+      const res = await fetch(`${config.API_BASE_URL}/api/slots/official/sector/name/${nameModal.id}`, {
+        method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         },
-        body: JSON.stringify({ 
-          sector_id: editModal.id,
-          event_id: setupEvent.id, 
-          slot_url: editModal.url, 
-          slot_name: editModal.name,
-          from: editModal.from, 
-          to: editModal.to 
-        })
+        body: JSON.stringify({ slot_name: nameModal.name })
       });
       
       const data = await res.json();
-
       if (res.ok) {
-        showStatus("Batch Updated", `Successfully updated sector!`, "success");
-        setEditModal({ ...editModal, show: false });
-        // Update local list
+        showStatus("Success", "Sector name updated!", "success");
+        setNameModal({ ...nameModal, show: false });
+        // Refresh local list
         const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
         const updatedData = await updatedRes.json();
         setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
       } else {
-        showStatus("Update Blocked", data.message || "Overlap detected or input invalid.", "error");
+        showStatus("Update Blocked", data.message || "Failed to update name.", "error");
       }
-    } catch (e) { showStatus("Update Failed", "Connection error or server failure.", "error"); } finally { setSaving(false); }
+    } catch (e) { showStatus("Update Failed", "Connection failure.", "error"); } finally { setSaving(false); }
   };
 
   const handleDeleteSector = (sectorId, sectorName) => {
@@ -438,9 +439,9 @@ const SlotManagement = () => {
                                                 className="btn btn-sm btn-outline-danger px-3 py-1 rounded-pill x-small fw-bold transition-all border-opacity-30">
                                            DELETE ZONE
                                         </button>
-                                        <button onClick={() => handleEditSector(slots)} className="btn btn-sm px-3 py-1 rounded-pill x-small fw-bold transition-all d-flex align-items-center gap-2" 
+                                        <button onClick={() => handleEditName(slots[0]?.EventSlotImage)} className="btn btn-sm px-3 py-1 rounded-pill x-small fw-bold transition-all d-flex align-items-center gap-2" 
                                                 style={{ background: 'var(--admin-accent)', color: '#000', border: 'none', boxShadow: '0 0 15px rgba(102, 252, 241, 0.2)' }}>
-                                           <RotateCcw size={12} /> EDIT CONFIG
+                                           <RotateCcw size={12} /> EDIT NAME
                                         </button>
                                         <div className="d-flex align-items-center gap-2 x-small fw-bold">
                                            <div className="rounded-circle bg-accent shadow-[0_0_10px_var(--admin-accent)]" style={{ width: 6, height: 6 }}></div> AVAILABLE
@@ -522,71 +523,35 @@ const SlotManagement = () => {
         </>
       )}
 
-      {/* Edit Sector Modal - USING PORTAL */}
-      {editModal.show && createPortal(
+      {/* Edit Sector Modal - NO LONGER USED, REPLACED BY NAME MODAL */}
+      
+      {/* Edit Name Modal - USING PORTAL */}
+      {nameModal.show && createPortal(
          <div className="modal-overlay position-fixed top-0 start-0 w-100 h-100 z-index-master">
-            <div className="data-table p-0 border-0 shadow-2xl reveal zoom w-100 overflow-hidden" style={{ maxWidth: 800 }}>
+            <div className="data-table p-0 border-0 shadow-2xl reveal zoom w-100 overflow-hidden" style={{ maxWidth: 450 }}>
                <div className="p-4 border-bottom border-white border-opacity-5 d-flex justify-content-between align-items-center">
                   <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-3">
-                     <Grid size={20} className="text-accent" /> EDIT SECTOR STRATEGY
+                     <Grid size={20} className="text-accent" /> RENAME SECTOR
                   </h5>
-                  <button onClick={() => setEditModal({ ...editModal, show: false })} className="btn btn-dark rounded-circle p-2 border-0"><X size={18} /></button>
+                  <button onClick={() => setNameModal({ ...nameModal, show: false })} className="btn btn-dark rounded-circle p-2 border-0"><X size={18} /></button>
                </div>
                <div className="p-5">
-                  <div className="row g-5">
-                     <div className="col-md-6 border-end border-white border-opacity-5">
-                        <label className="x-small text-muted-custom fw-bold mb-3 tracking-widest text-uppercase d-block">1. UPDATE SECTOR NAME</label>
-                        <div className="p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10 mb-5">
-                           <input 
-                              type="text" className="form-control bg-transparent border-0 text-white fw-bold p-0 shadow-none h5 mb-0"
-                              value={editModal.name} onChange={e => setEditModal({...editModal, name: e.target.value})}
-                           />
-                        </div>
-
-                        <label className="x-small text-muted-custom fw-bold mb-3 tracking-widest text-uppercase d-block">2. RE-UPLOAD MAP</label>
-                        <div className="upload-zone p-3 rounded-4 border-2 border-dashed d-flex align-items-center justify-content-center position-relative overflow-hidden" 
-                             style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', height: 200 }}>
-                           {uploading ? (
-                              <Loader2 size={24} className="animate-spin text-accent" />
-                           ) : (
-                              <div className="position-relative w-100 h-100 text-center">
-                                 <img src={editModal.url} className="w-100 h-100 object-fit-contain opacity-75" alt="" />
-                                 <label className="position-absolute bottom-0 end-0 m-2 btn btn-accent rounded-pill px-3 py-1 small fw-bold text-dark d-flex align-items-center gap-2">
-                                    <Upload size={14} /> REPLACE <input type="file" className="d-none" onChange={handleModalFileUpload} accept="image/*" />
-                                 </label>
-                              </div>
-                           )}
-                        </div>
+                  <div className="mb-5">
+                     <label className="x-small text-muted-custom fw-bold mb-2 tracking-widest text-uppercase d-block">NEW ZONE NAME</label>
+                     <div className="p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
+                        <input 
+                           type="text" className="form-control bg-transparent border-0 text-white fw-bold p-0 shadow-none h5 mb-0"
+                           value={nameModal.name} onChange={e => setNameModal({...nameModal, name: e.target.value})}
+                           placeholder="e.g. Primary Garage"
+                        />
                      </div>
-                     <div className="col-md-6">
-                        <label className="x-small text-muted-custom fw-bold mb-3 tracking-widest text-uppercase d-block">3. ADJUST SLOT RANGE</label>
-                        <div className="row g-3 mb-5">
-                           <div className="col-6">
-                              <div className="p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
-                                 <div className="x-small text-muted-custom fw-bold">FROM</div>
-                                 <input type="number" className="form-control bg-transparent border-0 text-white fw-bold p-0 shadow-none" value={editModal.from} onChange={e => setEditModal({...editModal, from: e.target.value})} />
-                              </div>
-                           </div>
-                           <div className="col-6">
-                              <div className="p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
-                                 <div className="x-small text-muted-custom fw-bold">TO</div>
-                                 <input type="number" className="form-control bg-transparent border-0 text-white fw-bold p-0 shadow-none" value={editModal.to} onChange={e => setEditModal({...editModal, to: e.target.value})} />
-                              </div>
-                           </div>
-                        </div>
+                  </div>
 
-                        <div className="p-4 rounded-4 bg-accent bg-opacity-5 border border-accent border-opacity-10 mb-5">
-                           <div className="small text-accent fw-bold mb-1 d-flex align-items-center gap-2"><Check size={14} /> WARNING: BATCH MODIFICATION</div>
-                           <p className="x-small text-muted-custom mb-0 opacity-75">Existing data in this range will be cleared and replaced with individual slot entries linked to the map above.</p>
-                        </div>
-
-                        <div className="d-flex gap-3">
-                           <button onClick={() => setEditModal({ ...editModal, show: false })} className="btn btn-outline-secondary w-100 py-3 rounded-4 fw-bold">CANCEL</button>
-                           <button onClick={handleModalSave} disabled={saving || uploading} className="btn btn-admin w-100 py-3 rounded-4 fw-bold">
-                              {saving ? <Loader2 size={24} className="animate-spin mx-auto" /> : 'SAVE CHANGES'}
-                           </button>
-                        </div>
-                     </div>
+                  <div className="d-flex gap-3">
+                     <button onClick={() => setNameModal({ ...nameModal, show: false })} className="btn btn-outline-secondary w-100 py-3 rounded-4 fw-bold">CANCEL</button>
+                     <button onClick={handleSaveName} disabled={saving} className="btn btn-admin w-100 py-3 rounded-4 fw-bold">
+                        {saving ? <Loader2 size={24} className="animate-spin mx-auto" /> : 'SAVE CHANGES'}
+                     </button>
                   </div>
                </div>
             </div>
