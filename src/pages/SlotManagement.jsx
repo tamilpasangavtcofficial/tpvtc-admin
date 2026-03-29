@@ -28,7 +28,7 @@ const SlotManagement = () => {
   const [slotName, setSlotName] = useState('Main Area');
   
   // Modal States
-  const [editModal, setEditModal] = useState({ show: false, slots: [], url: '', name: '', from: 1, to: 1 });
+  const [editModal, setEditModal] = useState({ show: false, slots: [], url: '', name: '', from: 1, to: 1, id: null });
   const [assignModal, setAssignModal] = useState({ show: false, slot: null, vtcName: '' });
   
   const [uploading, setUploading] = useState(false);
@@ -132,6 +132,7 @@ const SlotManagement = () => {
     setEditModal({
       show: true,
       slots: slots,
+      id: img.id,
       url: img.slot_url,
       name: img.slot_name || "Main Area",
       from: Math.min(...numbers),
@@ -146,8 +147,12 @@ const SlotManagement = () => {
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/slots/official/setup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        },
         body: JSON.stringify({ 
+          sector_id: editModal.id,
           event_id: setupEvent.id, 
           slot_url: editModal.url, 
           slot_name: editModal.name,
@@ -155,6 +160,9 @@ const SlotManagement = () => {
           to: editModal.to 
         })
       });
+      
+      const data = await res.json();
+
       if (res.ok) {
         showStatus("Batch Updated", `Successfully updated sector!`, "success");
         setEditModal({ ...editModal, show: false });
@@ -162,8 +170,36 @@ const SlotManagement = () => {
         const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
         const updatedData = await updatedRes.json();
         setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+      } else {
+        showStatus("Update Blocked", data.message || "Overlap detected or input invalid.", "error");
       }
-    } catch (e) { showStatus("Update Failed", "Database rejected slot range injection.", "error"); } finally { setSaving(false); }
+    } catch (e) { showStatus("Update Failed", "Connection error or server failure.", "error"); } finally { setSaving(false); }
+  };
+
+  const handleDeleteSector = (sectorId, sectorName) => {
+    showStatus(
+      "Remove Parking Zone?",
+      `This will completely delete "${sectorName}" and all its slots. This action CANNOT be undone.`,
+      "confirm",
+      async () => {
+        try {
+          const res = await fetch(`${config.API_BASE_URL}/api/slots/official/sector/${sectorId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showStatus("Sector Removed", data.message, "success");
+            // Refresh
+            const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
+            const updatedData = await updatedRes.json();
+            setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+          } else {
+            showStatus("Action Denied", data.message, "error");
+          }
+        } catch (e) { showStatus("Error", "Could not remove sector.", "error"); }
+      }
+    );
   };
 
   const handleClearSlot = (slot) => {
@@ -367,11 +403,11 @@ const SlotManagement = () => {
               </div>
               
               <div className="row g-4">
-              {(() => {
+               {(() => {
                   const groups = existingSlots.reduce((acc, s) => {
-                     const url = s.EventSlotImage?.slot_url || 'default';
-                     if(!acc[url]) acc[url] = [];
-                     acc[url].push(s);
+                     const sectorId = s.EventSlotImage?.id || 'default';
+                     if(!acc[sectorId]) acc[sectorId] = [];
+                     acc[sectorId].push(s);
                      return acc;
                   }, {});
 
@@ -380,13 +416,13 @@ const SlotManagement = () => {
                          <MapIcon size={40} className="text-muted-custom opacity-20 mb-3" />
                          <div className="small text-muted-custom opacity-75">No parking configurations detected for this session.</div>
                      </div>
-                  ) : Object.entries(groups).map(([url, slots], idx) => (
+                  ) : Object.entries(groups).map(([sectorId, slots], idx) => (
                      <div key={idx} className="col-12">
                         <div className="data-table p-0 border-0 shadow-2xl overflow-hidden reveal group" style={{ background: 'rgba(255,255,255,0.01)' }}>
                            <div className="row g-0">
                               <div className="col-md-2 border-end border-white border-opacity-5 position-relative">
                                  <div className="w-100 h-100 bg-dark" style={{ minHeight: '140px' }}>
-                                    <img src={url} className="w-100 h-100 object-fit-cover opacity-50 transition-all group-hover:opacity-100 group-hover:scale-105" alt="Sector" />
+                                    <img src={slots[0]?.EventSlotImage?.slot_url} className="w-100 h-100 object-fit-cover opacity-50 transition-all group-hover:opacity-100 group-hover:scale-105" alt="Sector" />
                                  </div>
                                  <div className="position-absolute top-0 start-0 p-3 w-100">
                                     <div className="x-small px-2 py-1 rounded-2 fw-bold text-white tracking-widest text-truncate" style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -398,6 +434,10 @@ const SlotManagement = () => {
                                   <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-white border-opacity-5">
                                      <div className="x-small text-muted-custom fw-bold text-uppercase tracking-widest">ALLOCATED CAPACITY: {slots.length} SPOTS</div>
                                      <div className="d-flex gap-3 align-items-center">
+                                        <button onClick={() => handleDeleteSector(slots[0]?.EventSlotImage?.id, slots[0]?.EventSlotImage?.slot_name)} 
+                                                className="btn btn-sm btn-outline-danger px-3 py-1 rounded-pill x-small fw-bold transition-all border-opacity-30">
+                                           DELETE ZONE
+                                        </button>
                                         <button onClick={() => handleEditSector(slots)} className="btn btn-sm px-3 py-1 rounded-pill x-small fw-bold transition-all d-flex align-items-center gap-2" 
                                                 style={{ background: 'var(--admin-accent)', color: '#000', border: 'none', boxShadow: '0 0 15px rgba(102, 252, 241, 0.2)' }}>
                                            <RotateCcw size={12} /> EDIT CONFIG
