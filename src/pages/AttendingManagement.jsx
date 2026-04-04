@@ -48,13 +48,20 @@ const AttendingManagement = () => {
 
     const handleUpdate = async () => {
       setSaving(event.id);
+      const token = sessionStorage.getItem('token');
       try {
         const res = await fetch(`${config.API_BASE_URL}/api/slots/attending/setup`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ event_id: event.id, slot_number: sno, slot_url: surl })
         });
+        const data = await res.json();
         if (res.ok) showStatus("Update Saved", "Event details updated successfully!", "success");
+        else showStatus("Update Failed", data.error || data.message || "Could not save details.", "error");
+
       } catch (e) { showStatus("Update Failed", "Could not save event details.", "error"); } finally { setSaving(null); }
     };
 
