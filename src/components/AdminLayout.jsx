@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Ticket, Image, UserCheck, Inbox, LogOut, Zap, Brush, ExternalLink, History, Heart, Lock, ShieldCheck, X, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Ticket, Image, UserCheck, Inbox, LogOut, Zap, Brush, ExternalLink, History, Heart, Lock, ShieldCheck, X, Loader2, Trophy } from 'lucide-react';
 import logo from '../logo.png';
 import config from '../config';
 
@@ -96,6 +96,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Header Images', icon: <Zap size={20} />, path: '/header-images', roles: ['founder', 'developer', 'media team'] },
     { name: 'Gallery', icon: <Image size={20} />, path: '/gallery', roles: ['founder', 'developer', 'media team'] },
     { name: 'Our Supporters', icon: <Heart size={20} />, path: '/supporters', roles: ['founder', 'developer'] },
+    { name: 'Monthly Recognition', icon: <Trophy size={20} />, path: '/recognition', roles: ['founder', 'developer', 'staff', 'event team'] },
     { name: 'Users', icon: <UserCheck size={20} />, path: '/users', roles: ['founder', 'developer'] },
   ];
 
