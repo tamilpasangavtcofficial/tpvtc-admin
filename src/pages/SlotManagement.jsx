@@ -106,7 +106,10 @@ const SlotManagement = () => {
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/slots/official/setup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        },
         body: JSON.stringify({ 
           event_id: setupEvent.id, 
           slot_url: slotUrl, 
