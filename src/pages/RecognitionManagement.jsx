@@ -17,14 +17,17 @@ const RecognitionManagement = () => {
     p1_role: '',
     p1_tmp_id: '',
     p1_distance: '',
+    p1_dlc: '',
     p2_name: '',
     p2_role: '',
     p2_tmp_id: '',
     p2_distance: '',
+    p2_dlc: '',
     p3_name: '',
     p3_role: '',
     p3_tmp_id: '',
     p3_distance: '',
+    p3_dlc: '',
     published: false
   });
 
@@ -136,14 +139,17 @@ const RecognitionManagement = () => {
           p1_role: '',
           p1_tmp_id: '',
           p1_distance: '',
+          p1_dlc: '',
           p2_name: '',
           p2_role: '',
           p2_tmp_id: '',
           p2_distance: '',
+          p2_dlc: '',
           p3_name: '',
           p3_role: '',
           p3_tmp_id: '',
           p3_distance: '',
+          p3_dlc: '',
           published: false
         }));
       }
@@ -273,71 +279,8 @@ const RecognitionManagement = () => {
         </div>
 
         <div className="row g-4">
-          {/* Giveaway Section */}
-          <div className="col-lg-6">
-            <div className="data-table border-0 shadow-lg rounded-5 h-100 p-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
-              <div className="d-flex align-items-center gap-3 mb-4">
-                <div className="p-3 rounded-4 bg-warning bg-opacity-10 text-warning">
-                  <Gift size={24} />
-                </div>
-                <h4 className="fw-bold text-white mb-0">Monthly Giveaway Winner</h4>
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label text-muted-custom small fw-bold text-uppercase">Select Member</label>
-                <select 
-                  className="form-select bg-dark text-white border-white border-opacity-10 py-3 rounded-4"
-                  value={formData.winner_tmp_id || ""}
-                  onChange={(e) => handleMemberSelect('winner', e.target.value)}
-                >
-                  <option value="">Choose from VTC Team...</option>
-                  {members.map(m => (
-                    <option key={m.user_id} value={m.user_id}>
-                      {m.username} ({m.role})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6 mb-4">
-                  <label className="form-label text-muted-custom small fw-bold text-uppercase">Winner Name</label>
-                  <input type="text" readOnly className="form-control bg-dark bg-opacity-50 text-white border-white border-opacity-10 py-3 rounded-4" value={formData.winner_name} />
-                </div>
-                <div className="col-md-6 mb-4">
-                  <label className="form-label text-muted-custom small fw-bold text-uppercase">VTC Role</label>
-                  <input type="text" readOnly className="form-control bg-dark bg-opacity-50 text-white border-white border-opacity-10 py-3 rounded-4" value={formData.winner_role} />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label text-muted-custom small fw-bold text-uppercase">TruckersMP Event ID</label>
-                <input 
-                  type="number" 
-                  className="form-control bg-dark text-white border-white border-opacity-10 py-3 rounded-4" 
-                  value={formData.winner_event_id} 
-                  onChange={e => setFormData({...formData, winner_event_id: e.target.value})} 
-                  placeholder="e.g. 25841"
-                  required
-                />
-              </div>
-
-              <div className="mb-0">
-                <label className="form-label text-muted-custom small fw-bold text-uppercase">Prize DLC</label>
-                <input 
-                  type="text" 
-                  className="form-control bg-dark text-white border-white border-opacity-10 py-3 rounded-4" 
-                  value={formData.winner_dlc} 
-                  onChange={e => setFormData({...formData, winner_dlc: e.target.value})} 
-                  placeholder="e.g. West Balkans DLC"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Top Performers Section */}
-          <div className="col-lg-6">
+          <div className="col-12">
             <div className="data-table border-0 shadow-lg rounded-5 h-100 p-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
               <div className="d-flex align-items-center gap-3 mb-4">
                 <div className="p-3 rounded-4 bg-success bg-opacity-10 text-success">
@@ -384,6 +327,16 @@ const RecognitionManagement = () => {
                         required
                       />
                     </div>
+                  </div>
+                  
+                  <div className="mt-2">
+                      <input 
+                        type="text" 
+                        className="form-control form-control-sm bg-dark text-white border-white border-opacity-10 rounded-4" 
+                        value={formData[`p${num}_dlc`] || ''} 
+                        onChange={e => setFormData({...formData, [`p${num}_dlc`]: e.target.value})} 
+                        placeholder="Giveaway Prize DLC (Optional)"
+                      />
                   </div>
                 </div>
               ))}
