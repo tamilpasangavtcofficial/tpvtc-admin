@@ -96,6 +96,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Header Images', icon: <Zap size={20} />, path: '/header-images', roles: ['founder', 'developer', 'media team'] },
     { name: 'Gallery', icon: <Image size={20} />, path: '/gallery', roles: ['founder', 'developer', 'media team'] },
     { name: 'Our Supporters', icon: <Heart size={20} />, path: '/supporters', roles: ['founder', 'developer'] },
+    { name: 'Partners', icon: <UserCheck size={20} />, path: '/partners', roles: ['founder', 'developer'] },
     { name: 'Monthly Recognition', icon: <Trophy size={20} />, path: '/recognition', roles: ['founder', 'developer', 'staff', 'event team'] },
     { name: 'Users', icon: <UserCheck size={20} />, path: '/users', roles: ['founder', 'developer'] },
   ];

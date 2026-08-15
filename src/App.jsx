@@ -12,6 +12,7 @@ import SlotRequestLogs from './pages/SlotRequestLogs';
 import SupporterManagement from './pages/SupporterManagement';
 import MediaManagement from './pages/MediaManagement';
 import RecognitionManagement from './pages/RecognitionManagement';
+import PartnerManagement from './pages/PartnerManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/AdminLayout';
 
@@ -37,6 +38,7 @@ function App() {
         <Route path="/supporters" element={<ProtectedLayout><SupporterManagement /></ProtectedLayout>} />
         <Route path="/media" element={<ProtectedLayout><MediaManagement /></ProtectedLayout>} />
         <Route path="/recognition" element={<ProtectedLayout><RecognitionManagement /></ProtectedLayout>} />
+        <Route path="/partners" element={<ProtectedLayout><PartnerManagement /></ProtectedLayout>} />
         <Route path="/users" element={<ProtectedLayout><StaffManagement /></ProtectedLayout>} />
       </Routes>
     </Router>
