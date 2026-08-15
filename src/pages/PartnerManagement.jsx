@@ -154,9 +154,11 @@ export default function PartnerManagement() {
                                         <div>
                                             <span className="badge bg-dark border border-secondary mb-2">{p.partner_type}</span>
                                             <h5 className="fw-bold mb-1">{p.name}</h5>
-                                            <a href={p.vtc_link} target="_blank" rel="noreferrer" className="small d-inline-flex align-items-center gap-1" style={{ color: 'var(--admin-accent)' }}>
-                                                <ExternalLink size={12} /> VTC Link
-                                            </a>
+                                            {p.vtc_link && (
+                                                <a href={p.vtc_link} target="_blank" rel="noreferrer" className="small d-inline-flex align-items-center gap-1" style={{ color: 'var(--admin-accent)' }}>
+                                                    <ExternalLink size={12} /> VTC Link
+                                                </a>
+                                            )}
                                         </div>
                                         <div className="d-flex gap-2">
                                             <button className="btn-icon" onClick={() => openEdit(p)}>
@@ -211,8 +213,7 @@ export default function PartnerManagement() {
                                                 onChange={(e) => setFormData({...formData, partner_type: e.target.value})}
                                             >
                                                 <option value="VTC Partner">VTC Partner</option>
-                                                <option value="CC">CC (Community Contributor)</option>
-                                                <option value="Realops Partner">Realops Partner</option>
+                                                <option value="CC & Realops Partner">CC & Realops Partner</option>
                                             </select>
                                         </div>
                                         <div className="col-12">
@@ -220,10 +221,10 @@ export default function PartnerManagement() {
                                             <input 
                                                 type="url" 
                                                 className="form-control admin-input" 
-                                                value={formData.vtc_link}
+                                                value={formData.vtc_link || ''}
                                                 onChange={(e) => setFormData({...formData, vtc_link: e.target.value})}
-                                                required 
-                                                placeholder="e.g. https://truckersmp.com/vtc/70546"
+                                                placeholder={formData.partner_type === 'VTC Partner' ? "e.g. https://truckersmp.com/vtc/70546 (Required for VTC)" : "Not required for CC & Realops"}
+                                                required={formData.partner_type === 'VTC Partner'}
                                             />
                                         </div>
                                         <div className="col-12">
