@@ -27,6 +27,10 @@ const SlotManagement = () => {
   const [slotTo, setSlotTo] = useState(50);
   const [slotName, setSlotName] = useState('Main Area');
   
+  // Custom Slots State
+  const [slotType, setSlotType] = useState('range'); // 'range' or 'custom'
+  const [customSlotsText, setCustomSlotsText] = useState('');
+  
   // Modal States
   const [editModal, setEditModal] = useState({ show: false, slots: [], url: '', name: '', from: 1, to: 1, id: null });
   const [nameModal, setNameModal] = useState({ show: false, id: null, name: '' });
@@ -114,8 +118,9 @@ const SlotManagement = () => {
           event_id: setupEvent.id, 
           slot_url: slotUrl, 
           slot_name: slotName,
-          from: slotFrom, 
-          to: slotTo 
+          from: slotType === 'range' ? slotFrom : undefined, 
+          to: slotType === 'range' ? slotTo : undefined,
+          custom_slots: slotType === 'custom' ? customSlotsText.split('\n').map(s => s.trim()).filter(s => s) : undefined
         })
       });
       if (res.ok) {
@@ -123,7 +128,12 @@ const SlotManagement = () => {
         // Update local list
         const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
         const updatedData = await updatedRes.json();
-        setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+        setExistingSlots(updatedData.sort((a,b) => {
+           const numA = parseInt(a.slot_no);
+           const numB = parseInt(b.slot_no);
+           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+           return String(a.slot_no).localeCompare(String(b.slot_no));
+        }));
       }
     } catch (e) { showStatus("Setup Failed", "Database rejected slot range injection.", "error"); } finally { setSaving(false); }
   };
@@ -173,7 +183,12 @@ const SlotManagement = () => {
         // Refresh local list
         const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
         const updatedData = await updatedRes.json();
-        setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+        setExistingSlots(updatedData.sort((a,b) => {
+           const numA = parseInt(a.slot_no);
+           const numB = parseInt(b.slot_no);
+           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+           return String(a.slot_no).localeCompare(String(b.slot_no));
+        }));
       } else {
         showStatus("Update Blocked", data.message || "Failed to update name.", "error");
       }
@@ -197,7 +212,12 @@ const SlotManagement = () => {
             // Refresh
             const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
             const updatedData = await updatedRes.json();
-            setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+            setExistingSlots(updatedData.sort((a,b) => {
+               const numA = parseInt(a.slot_no);
+               const numB = parseInt(b.slot_no);
+               if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+               return String(a.slot_no).localeCompare(String(b.slot_no));
+            }));
           } else {
             showStatus("Action Denied", data.message, "error");
           }
@@ -221,7 +241,12 @@ const SlotManagement = () => {
             // Refresh
             const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
             const updatedData = await updatedRes.json();
-            setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+            setExistingSlots(updatedData.sort((a,b) => {
+               const numA = parseInt(a.slot_no);
+               const numB = parseInt(b.slot_no);
+               if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+               return String(a.slot_no).localeCompare(String(b.slot_no));
+            }));
           }
         } catch (e) { showStatus("Error", "Could not clear slot.", "error"); }
       }
@@ -245,7 +270,12 @@ const SlotManagement = () => {
         // Refresh
         const updatedRes = await fetch(`${config.API_BASE_URL}/api/slots/${setupEvent.id}`);
         const updatedData = await updatedRes.json();
-        setExistingSlots(updatedData.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)));
+        setExistingSlots(updatedData.sort((a,b) => {
+           const numA = parseInt(a.slot_no);
+           const numB = parseInt(b.slot_no);
+           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+           return String(a.slot_no).localeCompare(String(b.slot_no));
+        }));
       }
     } catch(e) { showStatus("Error", "Could not assign slot.", "error"); }
   };
@@ -346,7 +376,24 @@ const SlotManagement = () => {
                  </div>
 
                  <div className="mb-5">
-                    <label className="x-small text-muted-custom d-block mb-3 fw-bold tracking-widest text-uppercase">2. AREA NAME & RANGE</label>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                       <label className="x-small text-muted-custom fw-bold tracking-widest text-uppercase m-0">2. AREA NAME & SLOTS</label>
+                       <div className="d-flex bg-dark bg-opacity-20 border border-white border-opacity-10 rounded-pill p-1">
+                          <button 
+                             onClick={() => setSlotType('range')}
+                             className={`btn btn-sm rounded-pill x-small fw-bold px-3 transition-all ${slotType === 'range' ? 'bg-accent text-dark' : 'text-muted-custom hover:text-white border-0'}`}
+                          >
+                             NUMBERED RANGE
+                          </button>
+                          <button 
+                             onClick={() => setSlotType('custom')}
+                             className={`btn btn-sm rounded-pill x-small fw-bold px-3 transition-all ${slotType === 'custom' ? 'bg-accent text-dark' : 'text-muted-custom hover:text-white border-0'}`}
+                          >
+                             CUSTOM NAMES
+                          </button>
+                       </div>
+                    </div>
+                    
                     <div className="p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10 mb-4">
                        <div className="x-small text-muted-custom fw-bold mb-1">PARKING SECTOR NAME</div>
                        <input 
@@ -355,40 +402,67 @@ const SlotManagement = () => {
                           placeholder="e.g. Primary Garage / City Center"
                        />
                     </div>
-                    <div className="row g-3">
-                       <div className="col-6">
-                          <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
-                             <div className="p-2 rounded-3 bg-accent bg-opacity-10 text-accent"><Hash size={18} /></div>
-                             <div className="flex-grow-1">
-                                <div className="x-small text-muted-custom fw-bold">FROM</div>
-                                <input 
-                                   type="number" className="form-control form-control-sm bg-transparent border-0 text-white fw-bold p-0"
-                                   value={slotFrom} onChange={e => setSlotFrom(e.target.value)}
-                                />
+
+                    {slotType === 'range' ? (
+                       <>
+                          <div className="row g-3">
+                             <div className="col-6">
+                                <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
+                                   <div className="p-2 rounded-3 bg-accent bg-opacity-10 text-accent"><Hash size={18} /></div>
+                                   <div className="flex-grow-1">
+                                      <div className="x-small text-muted-custom fw-bold">FROM</div>
+                                      <input 
+                                         type="number" className="form-control form-control-sm bg-transparent border-0 text-white fw-bold p-0"
+                                         value={slotFrom} onChange={e => setSlotFrom(e.target.value)}
+                                      />
+                                   </div>
+                                </div>
+                             </div>
+                             <div className="col-6">
+                                <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
+                                   <div className="p-2 rounded-3 bg-accent bg-opacity-10 text-accent"><Hash size={18} /></div>
+                                   <div className="flex-grow-1">
+                                      <div className="x-small text-muted-custom fw-bold">TO</div>
+                                      <input 
+                                         type="number" className="form-control form-control-sm bg-transparent border-0 text-white fw-bold p-0"
+                                         value={slotTo} onChange={e => setSlotTo(e.target.value)}
+                                      />
+                                   </div>
+                                </div>
                              </div>
                           </div>
-                       </div>
-                       <div className="col-6">
-                          <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
-                             <div className="p-2 rounded-3 bg-accent bg-opacity-10 text-accent"><Hash size={18} /></div>
-                             <div className="flex-grow-1">
-                                <div className="x-small text-muted-custom fw-bold">TO</div>
-                                <input 
-                                   type="number" className="form-control form-control-sm bg-transparent border-0 text-white fw-bold p-0"
-                                   value={slotTo} onChange={e => setSlotTo(e.target.value)}
-                                />
+                          <div className="mt-4 p-4 rounded-4 border border-accent border-opacity-10 bg-accent bg-opacity-5 animate-pulse">
+                             <div className="h6 text-accent d-flex align-items-center gap-2 mb-0">
+                                <Check size={16} /> Individual Spots System
+                             </div>
+                             <div className="small text-muted-custom opacity-75 mt-1">
+                                System will generate and link slots **#{slotFrom}** to **#{slotTo}**.
                              </div>
                           </div>
-                       </div>
-                    </div>
-                    <div className="mt-4 p-4 rounded-4 border border-accent border-opacity-10 bg-accent bg-opacity-5 animate-pulse">
-                       <div className="h6 text-accent d-flex align-items-center gap-2 mb-0">
-                          <Check size={16} /> Individual Spots System
-                       </div>
-                       <div className="small text-muted-custom opacity-75 mt-1">
-                          System will generate and link slots **#{slotFrom}** to **#{slotTo}**.
-                       </div>
-                    </div>
+                       </>
+                    ) : (
+                       <>
+                          <div className="p-3 rounded-4 bg-dark bg-opacity-20 border border-white border-opacity-10">
+                             <div className="x-small text-muted-custom fw-bold mb-2">CUSTOM SLOT NAMES (ONE PER LINE)</div>
+                             <textarea 
+                                className="form-control bg-transparent border-0 text-white p-0 shadow-none"
+                                rows="5"
+                                value={customSlotsText} 
+                                onChange={e => setCustomSlotsText(e.target.value)}
+                                placeholder="Public Slot&#10;Tamil Pasanga VTC&#10;Top Truck"
+                                style={{ resize: 'none' }}
+                             ></textarea>
+                          </div>
+                          <div className="mt-4 p-4 rounded-4 border border-accent border-opacity-10 bg-accent bg-opacity-5 animate-pulse">
+                             <div className="h6 text-accent d-flex align-items-center gap-2 mb-0">
+                                <Check size={16} /> Pre-booked Slots System
+                             </div>
+                             <div className="small text-muted-custom opacity-75 mt-1">
+                                System will generate text-based slots which will be automatically pre-booked.
+                             </div>
+                          </div>
+                       </>
+                    )}
                  </div>
 
                   <button onClick={handleSaveSetup} disabled={saving || uploading} className="btn btn-admin w-100 py-4 rounded-4 shadow-2xl h4 fw-bold tracking-wider animate-pulse mb-0">
@@ -455,7 +529,12 @@ const SlotManagement = () => {
                                      </div>
                                   </div>
                                  <div className="d-flex flex-wrap gap-2">
-                                    {slots.sort((a,b) => parseInt(a.slot_no) - parseInt(b.slot_no)).map(s => (
+                                    {slots.sort((a,b) => {
+                                        const numA = parseInt(a.slot_no);
+                                        const numB = parseInt(b.slot_no);
+                                        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                                        return String(a.slot_no).localeCompare(String(b.slot_no));
+                                     }).map(s => (
                                         <div key={s.id} 
                                              onClick={() => s.booked_by ? handleClearSlot(s) : setAssignModal({ show: true, slot: s, vtcName: '' })}
                                              className={`slot-pill transition-all cursor-pointer d-flex align-items-center gap-3 px-3 py-2 rounded-3 small fw-bold border ${
@@ -465,13 +544,16 @@ const SlotManagement = () => {
                                              }`} 
                                              title={s.booked_by ? `MANUAL OVERRIDE: ${s.booked_by}` : 'CLICK TO MANUALLY ASSIGN'}>
                                            <div className="d-flex align-items-center gap-2">
-                                             <span className="opacity-50 text-white fw-normal x-small">#</span>{s.slot_no}
+                                             {!isNaN(parseInt(s.slot_no)) && <span className="opacity-50 text-white fw-normal x-small">#</span>}{s.slot_no}
                                            </div>
-                                           {s.booked_by && (
-                                             <div className="border-start border-white border-opacity-10 ps-2 d-flex align-items-center gap-2">
-                                               <span className="text-white x-small fw-600 opacity-75">{s.booked_by}</span>
-                                               <X size={10} className="ms-1 opacity-50" />
-                                             </div>
+                                           {s.booked_by && s.booked_by !== s.slot_no && (
+                                              <div className="border-start border-white border-opacity-10 ps-2 d-flex align-items-center gap-2">
+                                                <span className="text-white x-small fw-600 opacity-75">{s.booked_by}</span>
+                                                <X size={10} className="ms-1 opacity-50" />
+                                              </div>
+                                           )}
+                                           {s.booked_by && s.booked_by === s.slot_no && (
+                                              <X size={10} className="ms-1 opacity-50" />
                                            )}
                                         </div>
                                     ))}
