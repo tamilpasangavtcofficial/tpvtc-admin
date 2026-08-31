@@ -494,7 +494,13 @@ const SlotManagement = () => {
                          <MapIcon size={40} className="text-muted-custom opacity-20 mb-3" />
                          <div className="small text-muted-custom opacity-75">No parking configurations detected for this session.</div>
                      </div>
-                  ) : Object.entries(groups).map(([sectorId, slots], idx) => (
+                  ) : Object.entries(groups).sort((a, b) => {
+                     const getWeight = (g) => {
+                        if (g.some(s => isNaN(parseInt(s.slot_no)))) return -1;
+                        return Math.min(...g.map(s => parseInt(s.slot_no) || 999));
+                     };
+                     return getWeight(a[1]) - getWeight(b[1]);
+                  }).map(([sectorId, slots], idx) => (
                      <div key={idx} className="col-12">
                         <div className="data-table p-0 border-0 shadow-2xl overflow-hidden reveal group" style={{ background: 'rgba(255,255,255,0.01)' }}>
                            <div className="row g-0">
