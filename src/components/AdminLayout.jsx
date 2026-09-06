@@ -89,15 +89,15 @@ const AdminLayout = ({ children }) => {
 
   const navItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/', roles: ['founder', 'developer', 'event team', 'media team', 'staff'] },
-    { name: 'Official Event Slots', icon: <Ticket size={20} />, path: '/slots', roles: ['founder', 'developer', 'event team'] },
-    { name: 'Attending Events', icon: <ExternalLink size={20} />, path: '/attending', roles: ['founder', 'developer', 'event team'] },
+    { name: 'Official Event Slots', icon: <Ticket size={20} />, path: '/slots', roles: ['founder', 'developer'] },
+    { name: 'Attending Events', icon: <ExternalLink size={20} />, path: '/attending', roles: ['founder', 'developer'] },
     { name: 'VTC Requests', icon: <Inbox size={20} />, path: '/requests', roles: ['founder', 'developer', 'event team'], badge: pendingCount },
     { name: 'Slot Request Logs', icon: <History size={20} />, path: '/request-logs', roles: ['founder', 'developer', 'event team'] },
     { name: 'Header Images', icon: <Zap size={20} />, path: '/header-images', roles: ['founder', 'developer', 'media team'] },
     { name: 'Gallery', icon: <Image size={20} />, path: '/gallery', roles: ['founder', 'developer', 'media team'] },
     { name: 'Our Supporters', icon: <Heart size={20} />, path: '/supporters', roles: ['founder', 'developer'] },
     { name: 'Partners', icon: <UserCheck size={20} />, path: '/partners', roles: ['founder', 'developer'] },
-    { name: 'Monthly Recognition', icon: <Trophy size={20} />, path: '/recognition', roles: ['founder', 'developer', 'staff', 'event team'] },
+    { name: 'Monthly Recognition', icon: <Trophy size={20} />, path: '/recognition', roles: ['founder', 'developer', 'staff'] },
     { name: 'Users', icon: <UserCheck size={20} />, path: '/users', roles: ['founder', 'developer'] },
   ];
 
